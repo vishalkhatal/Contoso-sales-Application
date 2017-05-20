@@ -1,0 +1,130 @@
+﻿@model TestApplication.Models.Invoices
+
+@{
+    ViewBag.Title = "Create";
+}
+
+<h2>Create</h2>
+
+
+@using (Html.BeginForm()) 
+{
+    @Html.AntiForgeryToken()
+    
+    <div class="form-horizontal">
+        <h4>Invoices</h4>
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div>
+            @ViewBag.Message
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.CustomerName, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.CustomerName, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.CustomerName, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.ProductName, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownListFor(model => model.ProductName, Model.ProductList, "Select" ,new { onchange = "GetProductDefaultCost(this.value)" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.CostPerUnit, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.CostPerUnit, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.CostPerUnit, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Discount, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Discount, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Discount, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Quantity, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Quantity, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Quantity, "", new { @class = "text-danger"})
+            </div>
+        </div>
+
+
+        <div class="form-group calculation" style="display:none;">
+            Total= <input type="number" id="Total_cal" />
+            Discount=<input type="number" id="Discount_cal" />
+            Tax=<input type="number" id="Tax_cal" />
+            Final Amount is <input type="number" id="FinalAmount_cal" />
+        </div>
+
+
+       
+
+
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-1">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+           
+            <a href="@Url.Action("Index", "Invoices")" class="btn btn-danger col-md-1">Cancel</a>
+
+            <a href="@Url.Action("Index", "Invoices")" class="btn btn-default col-md-1">Exit</a>
+
+        </div>
+    </div>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index")
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+<script>
+    function GetProductDefaultCost(productName)
+    {
+        productName = $("#ProductName").val();
+       // alert('Test Successful');
+    $.ajax({
+        dataType: "application/json",
+        type: "POST",
+        data: { productName : productName },
+        url: "/Invoices/FetchCostPerUnit",
+        success: function (data) {
+            console.log(data);
+            $('#CostPerUnit').val(data);
+        }
+    });
+    }
+    $("#Quantity").change(function () {
+        var Tax = 0.04;
+        $('.calculation').show();
+        var CostPerUnit = $('#CostPerUnit').val();
+        var Quantity = $('#Quantity').val();
+        var Discount = $('#Discount').val();
+
+        var amount = (CostPerUnit * Quantity);
+        $('#Total_cal').val(amount);
+        amount = (CostPerUnit * Quantity) - Discount;
+
+
+        var taxAmount = amount * Tax;
+        amount = amount + taxAmount;
+        $('#Discount_cal').val(Discount);
+        $('#Tax_cal').val(taxAmount);
+        $('#FinalAmount_cal').val(amount);
+
+
+
+    });
+    </script>
+}
